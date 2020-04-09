@@ -1,0 +1,16 @@
+---
+php_fpm_config_path: /etc/php/7.2/fpm/conf.d
+php_fpm_pool_path: /etc/php/7.2/fpm/pool.d
+nginx_config_path: /etc/nginx
+php_package_prefix: php7.2
+php_extensions:
+  - bcmath
+  - cli
+  - common
+  - gd
+  - intl
+  - mbstring
+  - odbc
+  - pdo
+  - xml
+  - mysql

@@ -1,0 +1,24 @@
+---
+- name: Development Environment for Symfony 5
+  hosts: dev
+  connection: local
+  become: yes
+  user: "{{ remote_username }}"
+
+  roles:
+    - base-system
+    - base-app
+
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+    - name: restart php-fpm
+      service:
+        name: php7.2-fpm
+        state: restarted
+    - name: restart mysql
+      service:
+        name: mysql
+        state: restarted

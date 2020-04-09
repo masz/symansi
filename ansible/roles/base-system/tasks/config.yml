@@ -1,0 +1,97 @@
+---
+
+- name: "Register local service hostnames"
+  lineinfile:
+    dest: /etc/hosts
+    line: '127.0.0.1 {{ item }}'
+  with_items: ['redis', 'database']
+
+- name: Add custom php config
+  template:
+    src: custom.ini.j2
+    dest: "{{ php_fpm_config_path }}/99-custom.ini"
+  notify:
+    - restart php-fpm
+
+- name: Add custom pool config
+  template:
+    src: symfony.pool.conf.j2
+    dest: "{{ php_fpm_pool_path }}/symfony.pool.conf"
+  notify:
+    - restart php-fpm
+
+- name: Add nginx configuration file
+  template:
+    src: nginx.conf.j2
+    dest: "{{ nginx_config_path }}/nginx.conf"
+  notify:
+    - restart nginx
+
+- name: Add symfony configuration file
+  template:
+    src: symfony.conf.j2
+    dest: "{{ nginx_config_path }}/conf.d/symfony.conf"
+  notify:
+    - restart nginx
+
+- name: Check if root password is set
+  shell: >
+    mysqladmin -u root status
+  changed_when: false
+  failed_when: false
+  register: root_pwd_check
+
+- name: Set mariadb root password initially
+  mysql_user:
+    name: root
+    password: "root"
+    host: localhost
+    login_unix_socket: "/var/run/mysqld/mysqld.sock"
+    state: present
+  when: root_pwd_check.rc == 0
+
+- name: Set mariadba root password
+  mysql_user:
+    name: root
+    password: "root"
+    host: "{{ item }}"
+    login_user: root
+    login_password: "root"
+    login_unix_socket: "/var/run/mysqld/mysqld.sock"
+    state: present
+  with_items:
+    - ::1
+    - 127.0.0.1
+  when: root_pwd_check.rc == 0
+
+- name: Create .my.cnf
+  copy:
+   src: "my.cnf"
+   dest: "/root/.my.cnf"
+   owner: root
+   group: root
+   mode: 0600
+
+- name: Create symfony database
+  mysql_db:
+    name: symfony
+    login_unix_socket: "/var/run/mysqld/mysqld.sock"
+    state: present
+
+- name: Create symfony user
+  mysql_user:
+    name: symfony
+    password: symfony
+    login_unix_socket: "/var/run/mysqld/mysqld.sock"
+    state: present
+
+- name: Add priviliges to symfony user
+  mysql_user:
+    name: symfony
+    append_privs: true
+    priv: "{{ item }}"
+    login_unix_socket: "/var/run/mysqld/mysqld.sock"
+    state: present
+  with_items:
+    - '*.*:ALL,GRANT'
+    - '*.*:FILE'

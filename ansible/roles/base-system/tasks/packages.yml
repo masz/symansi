@@ -1,0 +1,53 @@
+---
+
+- name: Install php
+  package:
+    name: php
+    state: latest
+
+- name: Install php-fpm
+  package:
+    name: php-fpm
+    state: latest
+
+- name: Install php extensions
+  package:
+    name: "{{ php_package_prefix }}-{{ item }}"
+    state: latest
+  with_items: "{{ php_extensions }}"
+
+- name: Stop apache
+  service:
+    name: apache2
+    state: stopped
+
+- name: Remove apache
+  package:
+    name: apache2
+    state: absent
+
+- name: Install nginx
+  package:
+    name: nginx
+    state: present
+  notify: restart nginx
+
+- name: Install mariadb
+  package:
+    name: mariadb-server
+    state: latest
+
+- name: Install redis
+  package:
+    name: redis-server
+    state: latest
+
+- name: Install pip
+  package:
+    name: python-pip
+    state: latest
+
+- name: Install pymysql
+  pip:
+    name: pymysql
+    state: present

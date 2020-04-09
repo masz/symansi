@@ -1,0 +1,18 @@
+---
+
+- block:
+  - name: "Check if composer exists"
+    shell: "composer --version"
+    ignore_errors: yes
+    register: composer_status
+
+  - name: "Install composer"
+    shell: "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer"
+    when: composer_status.rc != 0
+
+- block:
+  - name: "composer install"
+    become_user: "{{ remote_username }}"
+    shell: "composer install --no-scripts"
+    args:
+      chdir: "{{ working_dir }}"

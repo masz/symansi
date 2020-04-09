@@ -1,0 +1,6 @@
+---
+
+- name: "Execute database migrations"
+  command: "bin/console doctrine:migrations:migrate -n"
+  args:
+    chdir: "{{ working_dir }}"

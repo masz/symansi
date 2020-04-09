@@ -1,0 +1,4 @@
+---
+
+- include_tasks: composer.yml
+- include_tasks: migrations.yml
